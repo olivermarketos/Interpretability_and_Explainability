@@ -1,0 +1,11 @@
+data_dir: data/
+output_base_dir: output/
+model_name: 1_init_cnn_
+
+image_size: 512
+batch_size: 4
+num_workers: 0
+epochs: 10
+learning_rate: 0.001
+
+dropout: 0.3
