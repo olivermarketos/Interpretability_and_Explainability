@@ -8,71 +8,86 @@ import pandas as pd
 
 
 class PneumoniaPredictorCNN(nn.Module):
-    def __init__(self, image_size=(128, 128),dropout=0.5):
+    def __init__(self, image_size=(512, 512),
+                in_channels=1, 
+                conv_defs=None, 
+                fc_defs=None,
+                fc_batch_norm=True,
+                fc_dropout=0.5):
 
         super().__init__()
         self.image_size = image_size
+        
 
-        self.layers = nn.ModuleList()
+        conv_layers = []
+        current_channels = in_channels
+        for layer_config in conv_defs:
+            conv_layers.append(nn.Conv2d(
+                in_channels=current_channels,
+                out_channels=layer_config['out_channels'],
+                kernel_size=layer_config['kernel_size'],
+                stride=layer_config['stride'],
+                padding=layer_config['padding']
+                ))
+            if layer_config.get('batch_norm', True):
+                conv_layers.append(nn.BatchNorm2d(layer_config['out_channels']))
+            conv_layers.append(nn.ReLU())
+            
+            if 'dropout' in layer_config and layer_config['dropout'] > 0:
+                conv_layers.append(nn.Dropout2d(p=layer_config['dropout'])) # Use Dropout2d for feature maps
+            if 'pool' in layer_config:
+                pool = layer_config['pool']
+                conv_layers.append(getattr(nn, pool['type'])(
+                    kernel_size=pool.get('kernel_size', 2),
+                    stride=pool.get('stride', 2)
+                ))
 
+            current_channels = layer_config['out_channels']
 
-        self.layers.append(nn.Conv2d(in_channels=1, out_channels= 32 , kernel_size= 5))
-        self.layers.append(nn.BatchNorm2d(32))
-        self.layers.append(nn.ReLU())
+        self.conv = nn.Sequential(*conv_layers)
 
-        self.layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
-
-        self.layers.append(nn.Conv2d(in_channels=32, out_channels= 64 , kernel_size= 5))
-        self.layers.append(nn.BatchNorm2d(64))
-        self.layers.append(nn.ReLU())     
-        self.layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
-   
-
-        self.layers.append(nn.Conv2d(in_channels=64, out_channels= 96 , kernel_size= 5))
-        self.layers.append(nn.BatchNorm2d(96))
-        self.layers.append(nn.ReLU())     
-        self.layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
-
-
-        self.layers.append(nn.Conv2d(in_channels=96, out_channels= 128 , kernel_size= 5))
-        self.layers.append(nn.BatchNorm2d(128))
-        self.layers.append(nn.ReLU())    
-        self.layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
- 
-
-        self.layers.append(nn.Conv2d(in_channels=128, out_channels= 160 , kernel_size= 5))
-        self.layers.append(nn.BatchNorm2d(160))
-        self.layers.append(nn.ReLU())
-        self.layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
-
-        self.layers = nn.Sequential(*self.layers)
-
-        # calculate the output size after the conv layers
-        num_conv_features, h_out, w_out = self.calc_conv_output_size(self.image_size)
-        self.flattened_size = num_conv_features * h_out * w_out
-        print(f"Flattened size after conv layers: {self.flattened_size}  {num_conv_features} channels x {h_out} H x {w_out} W)")
-
-        self.fc = nn.Sequential(nn.Linear(self.flattened_size, 128),
-                                nn.ReLU(),                            
-                                nn.BatchNorm1d(128),
-                                nn.Dropout(dropout)
+        # global pooling & classifier
+        self.global_pool = nn.AdaptiveAvgPool2d((1,1))
+        self.classifier = nn.Sequential(
+            nn.Flatten(),                  # from [B, C, 1, 1] → [B, C]
+            nn.Linear(current_channels, 64),   # tiny FC
+            nn.ReLU(),
+            nn.Dropout(fc_dropout),
+            nn.Linear(64, 1)               # single logit
         )
 
-        self.fc2 = nn.Linear(128, 2)
-
-    def calc_conv_output_size(self, input_size):
-        with torch.no_grad():
-            dummy_input = torch.zeros(1, 1, *input_size) # batch 1, channels 1
-            dummy_output = self.layers(dummy_input)
-            output_shape = dummy_output.shape
-            return output_shape[1], output_shape[2], output_shape[3] # (channels, height, width)
-        
     def forward(self, x):
-        x = self.layers(x)
-        x = torch.flatten(x, 1)
-        x = self.fc(x)
-        x = self.fc2(x)
-        return x
+        x = self.conv(x)
+        x = self.global_pool(x)
+        x = self.classifier(x)
+        return x   
+
+    #     # compute flattened feature size
+    #     with torch.no_grad():
+    #         dummy = torch.zeros(1, in_channels, *self.image_size)
+    #         out = self.conv(dummy)
+    #         flat_features = out.numel() // out.size(0)  # numel() returns total number of elements in the tensor
+
+
+    #     # Build FC layers
+    #     fc_layers = []
+    #     prev = flat_features
+    #     for hidden in fc_defs[:-1]:
+    #         fc_layers.append(nn.Linear(prev, hidden))
+    #         fc_layers.append(nn.ReLU())
+    #         if fc_batch_norm:
+    #             fc_layers.append(nn.BatchNorm1d(hidden))
+    #         fc_layers.append(nn.Dropout(fc_dropout))
+    #         prev = hidden
+    #     fc_layers.append(nn.Linear(prev, fc_defs[-1]))  # last layer without activation
+    #     self.fc = nn.Sequential(*fc_layers)
+        
+
+    # def forward(self, x):
+    #     x = self.conv(x)
+    #     x = torch.flatten(x, 1)
+    #     x = self.fc(x)
+    #     return x
 
 
 

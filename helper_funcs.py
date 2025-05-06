@@ -17,7 +17,7 @@ def init_writer(config):
     # or combining it with your model identifier.
    
     # Define the specific log directory for THIS run
-    run_name = config["run_name"] 
+    run_name = config["run_identifier"] 
     current_run_log_dir = tensorboard_log_parent_dir / run_name
 
     # Initialize the writer to use the unique directory

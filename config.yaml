@@ -1,11 +1,61 @@
+# Config data directories
 data_dir: data/
 output_base_dir: output/
-model_name: 1_init_cnn_
+model_output_dir: output/model/
 
-image_size: 512
-batch_size: 4
+seed: 42
 num_workers: 0
-epochs: 10
-learning_rate: 0.001
 
-dropout: 0.3
+# CONFIG TRAINING PARAMETERS
+batch_size: 32
+num_workers: 0
+epochs: 20
+learning_rate: 0.0001
+
+
+# CONFIG THE MODEL
+model_name: V3_reduce_params_
+image_size: [512,512] # (height, width)
+in_channels: 1
+
+
+# define the convolutional layers
+conv_layers:
+  - out_channels: 32 # first conv layer
+    kernel_size: 3
+    batch_norm: True
+    dropout: 0.2
+    stride: 1
+    padding: 1
+    pool:
+      type: MaxPool2d
+      kernel_size: 2
+      stride: 2
+
+  - out_channels: 64 # second conv layer etc
+    kernel_size: 3
+    batch_norm: True
+    dropout: 0.2
+    stride: 1
+    padding: 1
+    pool:
+      type: MaxPool2d
+      kernel_size: 2
+      stride: 2
+
+  - out_channels: 128
+    kernel_size: 3
+    batch_norm: True
+    dropout: 0.4
+    stride: 1
+    padding: 1
+    pool:
+      type: MaxPool2d
+      kernel_size: 2
+      stride: 2
+
+fc_layers: [64, 1]
+fc_dropout: 0.5
+fc_batch_norm: True
+
+

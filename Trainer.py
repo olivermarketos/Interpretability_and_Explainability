@@ -28,15 +28,27 @@ class Trainer:
         phase = "training" if is_training else "validating"
         progress_bar = tqdm(dataloader, desc=f"{phase} Epoch {self.current_epoch}", leave=False)
 
+
+        correct = 0
+        total   = 0
+
         for x, y in progress_bar:
             x = x.to(self.device)
-            y = y.to(self.device)
+            y = y.to(self.device).float()        
 
             if is_training:
                 self.optimizer.zero_grad()
-
+            
+           
             with torch.set_grad_enabled(is_training):
                 outputs = self.model(x)
+                outputs = outputs.squeeze(1)
+
+                probs   = torch.sigmoid(outputs)   # (B,) in [0,1]
+                preds   = (probs > 0.5).long()    # (B,) in {0,1}
+
+                correct += (preds == y).sum().item()
+                total   += y.size(0)
                 loss = self.loss_fn(outputs, y)
 
                 if is_training:
@@ -47,7 +59,8 @@ class Trainer:
             total_loss += loss.item()
             progress_bar.set_postfix(loss=loss.item())
         avg_loss = total_loss / len(dataloader)
-        return avg_loss
+        accuracy = correct / total
+        return avg_loss, accuracy
 
        
        
@@ -72,16 +85,18 @@ class Trainer:
 
         for epoch in range(epochs):
             self.current_epoch = epoch
-            train_loss = self._run_epoch(train_dataloader, is_training=True)
+            train_loss, _ = self._run_epoch(train_dataloader, is_training=True)
             self.writer.add_scalar("Loss/train", train_loss, epoch)
             self.writer.add_scalar("Learning Rate", self.optimizer.param_groups[0]["lr"], epoch)
 
             val_loss = 0.
 
             if val_dataloader:
-                val_loss = self._run_epoch(val_dataloader, is_training=False)
+                val_loss, val_acc = self._run_epoch(val_dataloader, is_training=False)
                 self.writer.add_scalar("Loss/val", val_loss, epoch)
-                self.logger.info(f"Epoch {epoch}: train_loss: {train_loss:.4f} | val_loss: {val_loss:.4f}")
+                self.writer.add_scalar("Accuracy/val", val_acc, epoch)
+                self.writer.add_scalar("Accuracy/train", _, epoch)
+                self.logger.info(f"Epoch {epoch}: train_loss: {train_loss:.4f} | val_loss: {val_loss:.4f} | val_acc: {val_acc:.4f}")
 
                 if self.scheduler: # step scheduler, based on validation loss
                     if isinstance(self.scheduler, optim.lr_scheduler.ReduceLROnPlateau):
