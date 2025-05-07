@@ -8,7 +8,7 @@ import pandas as pd
 
 
 class PneumoniaPredictorCNN(nn.Module):
-    def __init__(self, image_size=(512, 512),
+    def __init__(self, image_size=(224, 224),
                 in_channels=1, 
                 conv_defs=None, 
                 fc_defs=None,
@@ -42,52 +42,39 @@ class PneumoniaPredictorCNN(nn.Module):
                     stride=pool.get('stride', 2)
                 ))
 
+
             current_channels = layer_config['out_channels']
 
         self.conv = nn.Sequential(*conv_layers)
 
-        # global pooling & classifier
-        self.global_pool = nn.AdaptiveAvgPool2d((1,1))
-        self.classifier = nn.Sequential(
-            nn.Flatten(),                  # from [B, C, 1, 1] → [B, C]
-            nn.Linear(current_channels, 64),   # tiny FC
-            nn.ReLU(),
-            nn.Dropout(fc_dropout),
-            nn.Linear(64, 1)               # single logit
-        )
+        # compute flattened feature size
+        with torch.no_grad():
+            dummy = torch.zeros(1, in_channels, *self.image_size)
+            out = self.conv(dummy)
+            flat_features = out.numel() // out.size(0)  # numel() returns total number of elements in the tensor
+
+
+        # Build FC layers
+        fc_layers = []
+        prev = flat_features
+        for hidden in fc_defs[:-1]:
+            fc_layers.append(nn.Linear(prev, hidden))
+            fc_layers.append(nn.ReLU())
+            if fc_batch_norm:
+                fc_layers.append(nn.BatchNorm1d(hidden))
+            fc_layers.append(nn.Dropout(fc_dropout))
+            prev = hidden
+        fc_layers.append(nn.Linear(prev, fc_defs[-1]))  # last layer without activation
+        self.fc = nn.Sequential(*fc_layers)
 
     def forward(self, x):
         x = self.conv(x)
-        x = self.global_pool(x)
-        x = self.classifier(x)
+        x = x.view(x.size(0), -1)  # flatten
+        x = self.fc(x)
         return x   
 
-    #     # compute flattened feature size
-    #     with torch.no_grad():
-    #         dummy = torch.zeros(1, in_channels, *self.image_size)
-    #         out = self.conv(dummy)
-    #         flat_features = out.numel() // out.size(0)  # numel() returns total number of elements in the tensor
-
-
-    #     # Build FC layers
-    #     fc_layers = []
-    #     prev = flat_features
-    #     for hidden in fc_defs[:-1]:
-    #         fc_layers.append(nn.Linear(prev, hidden))
-    #         fc_layers.append(nn.ReLU())
-    #         if fc_batch_norm:
-    #             fc_layers.append(nn.BatchNorm1d(hidden))
-    #         fc_layers.append(nn.Dropout(fc_dropout))
-    #         prev = hidden
-    #     fc_layers.append(nn.Linear(prev, fc_defs[-1]))  # last layer without activation
-    #     self.fc = nn.Sequential(*fc_layers)
+   
         
-
-    # def forward(self, x):
-    #     x = self.conv(x)
-    #     x = torch.flatten(x, 1)
-    #     x = self.fc(x)
-    #     return x
 
 
 

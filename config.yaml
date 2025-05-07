@@ -7,37 +7,49 @@ seed: 42
 num_workers: 0
 
 # CONFIG TRAINING PARAMETERS
-batch_size: 64
+batch_size: 32
 num_workers: 0
 epochs: 20
-learning_rate: 5e-5
+learning_rate: 0.0001
 weight_decay: 0.00001
-patience: 3
+patience: 5
+factor: 0.8
+cooldown: 5
+
 
 
 # CONFIG THE MODEL
-model_name: V3_reduce_params_
-image_size: [512,512] # (height, width)
+model_name: 5_smaller_img
+image_size: [224,224] # (height, width)
 in_channels: 1
 
 
 # define the convolutional layers
 conv_layers:
+  # block 1
   - out_channels: 32 # first conv layer
     kernel_size: 3
     batch_norm: True
-    dropout: 0.3
     stride: 1
     padding: 1
-    pool:
-      type: MaxPool2d
-      kernel_size: 2
-      stride: 2
-
-  - out_channels: 64 # second conv layer etc
+  - out_channels: 32 
     kernel_size: 3
     batch_norm: True
-    dropout: 0.3
+    stride: 1
+    padding: 1
+    pool:
+      type: MaxPool2d
+      kernel_size: 2
+      stride: 2
+  # block 2
+  - out_channels: 64 
+    kernel_size: 3
+    batch_norm: True
+    stride: 1
+    padding: 1
+  - out_channels: 64 
+    kernel_size: 3
+    batch_norm: True
     stride: 1
     padding: 1
     pool:
@@ -45,18 +57,49 @@ conv_layers:
       kernel_size: 2
       stride: 2
 
+  # block 3
   - out_channels: 128
     kernel_size: 3
     batch_norm: True
-    dropout: 0.5
     stride: 1
     padding: 1
+    pool:
+      type: MaxPool2d
+      kernel_size: 3
+      stride: 3
+  # block 4
+  - out_channels: 256
+    kernel_size: 3
+    batch_norm: True
+    stride: 1
+    padding: 1
+  - out_channels: 128
+    kernel_size: 3
+    batch_norm: True
+    stride: 1
+    padding: 1
+    pool:
+      type: MaxPool2d
+      kernel_size: 3
+      stride: 3
+  # block 5
+  - out_channels: 1024
+    kernel_size: 3
+    batch_norm: True
+    stride: 1
+    padding: 1
+  - out_channels: 512
+    kernel_size: 3
+    batch_norm: True
+    stride: 1
+    padding: 1
+    dropout: 0.4
     pool:
       type: MaxPool2d
       kernel_size: 2
       stride: 2
 
-fc_layers: [64, 1]
+fc_layers: [128, 64, 1]
 fc_dropout: 0.5
 fc_batch_norm: True
 
