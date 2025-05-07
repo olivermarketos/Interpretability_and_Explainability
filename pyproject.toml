@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "captum>=0.7.0",
+    "kaggle>=1.7.4.2",
     "kagglehub>=0.3.12",
     "matplotlib>=3.10.1",
     "numpy>=2.2.5",

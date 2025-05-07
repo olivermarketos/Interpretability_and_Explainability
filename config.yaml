@@ -7,10 +7,12 @@ seed: 42
 num_workers: 0
 
 # CONFIG TRAINING PARAMETERS
-batch_size: 32
+batch_size: 64
 num_workers: 0
 epochs: 20
-learning_rate: 0.0001
+learning_rate: 5e-5
+weight_decay: 0.00001
+patience: 3
 
 
 # CONFIG THE MODEL
@@ -24,7 +26,7 @@ conv_layers:
   - out_channels: 32 # first conv layer
     kernel_size: 3
     batch_norm: True
-    dropout: 0.2
+    dropout: 0.3
     stride: 1
     padding: 1
     pool:
@@ -35,7 +37,7 @@ conv_layers:
   - out_channels: 64 # second conv layer etc
     kernel_size: 3
     batch_norm: True
-    dropout: 0.2
+    dropout: 0.3
     stride: 1
     padding: 1
     pool:
@@ -46,7 +48,7 @@ conv_layers:
   - out_channels: 128
     kernel_size: 3
     batch_norm: True
-    dropout: 0.4
+    dropout: 0.5
     stride: 1
     padding: 1
     pool:
