@@ -73,10 +73,36 @@ class PneumoniaPredictorCNN(nn.Module):
         x = self.fc(x)
         return x   
 
-   
-        
 
+class PneumoniaPredictorCNN_gradcam(nn.Module):
+    def __init__(self, model):
 
+        super().__init__()
+        self.model = model
+        self.gradients = None
+
+        self.conv = self.model.conv[:32] # takes all layers up to last maxpool in conv layer    
+
+        self.maxpool = self.model.conv[32] # takes the last maxpool layer
+
+        self.classifier = self.model.fc
+
+    def activations_hook(self, grad):
+        self.gradients = grad
+    
+    def forward(self, x):
+        x = self.conv(x)
+        h = x.register_hook(self.activations_hook)
+        x = self.maxpool(x)
+        x = x.view(x.size(0), -1) # flatten
+        x = self.classifier(x)
+        return x
+
+    def get_activations_gradient(self):
+        return self.gradients
+    
+    def get_activations(self, x):
+        return self.conv(x)
 
 class PneumoniaDataset(Dataset):
     def __init__(self, dataframe, transform=None):
