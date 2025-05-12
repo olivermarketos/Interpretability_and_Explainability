@@ -1,0 +1,106 @@
+# Config data directories
+data_dir: data/
+output_base_dir: output/
+model_output_dir: output/model/
+
+seed: 42
+
+# CONFIG TRAINING PARAMETERS
+batch_size: 32
+num_workers: 0
+epochs: 20
+learning_rate: 0.0001
+weight_decay: 0.00001
+patience: 5
+factor: 0.8
+cooldown: 5
+optimizer: AdamW
+
+
+# CONFIG THE MODEL
+model_name: 6_smaller_img
+run_identifier: 07_05_110444_6_smaller_img_bs32_lr0.0001_epoch15_img_size224x224
+image_size: [224,224] # (height, width)
+in_channels: 1
+
+
+# define the convolutional layers
+conv_layers:
+  # block 1
+  - out_channels: 32 # first conv layer
+    kernel_size: 3
+    batch_norm: True
+    stride: 1
+    padding: 1
+  - out_channels: 32 
+    kernel_size: 3
+    batch_norm: True
+    stride: 1
+    padding: 1
+    pool:
+      type: MaxPool2d
+      kernel_size: 2
+      stride: 2
+  # block 2
+  - out_channels: 64 
+    kernel_size: 3
+    batch_norm: True
+    stride: 1
+    padding: 1
+  - out_channels: 64 
+    kernel_size: 3
+    batch_norm: True
+    stride: 1
+    padding: 1
+    pool:
+      type: MaxPool2d
+      kernel_size: 2
+      stride: 2
+
+  # block 3
+  - out_channels: 128
+    kernel_size: 3
+    batch_norm: True
+    stride: 1
+    padding: 1
+    pool:
+      type: MaxPool2d
+      kernel_size: 3
+      stride: 3
+  # block 4
+  - out_channels: 256
+    kernel_size: 3
+    batch_norm: True
+    stride: 1
+    padding: 1
+  - out_channels: 128
+    kernel_size: 3
+    batch_norm: True
+    stride: 1
+    padding: 1
+    pool:
+      type: MaxPool2d
+      kernel_size: 3
+      stride: 3
+  # block 5
+  - out_channels: 1024
+    kernel_size: 3
+    batch_norm: True
+    stride: 1
+    padding: 1
+  - out_channels: 512
+    kernel_size: 3
+    batch_norm: True
+    stride: 1
+    padding: 1
+    dropout: 0.4
+    pool:
+      type: MaxPool2d
+      kernel_size: 2
+      stride: 2
+
+fc_layers: [128, 64, 1]
+fc_dropout: 0.5
+fc_batch_norm: True
+
+

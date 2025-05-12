@@ -1,0 +1,50 @@
+batch_size: 32
+conv_layers:
+- batch_norm: true
+  dropout: 0.2
+  kernel_size: 3
+  out_channels: 32
+  padding: 1
+  pool:
+    kernel_size: 2
+    stride: 2
+    type: MaxPool2d
+  stride: 1
+- batch_norm: true
+  dropout: 0.2
+  kernel_size: 3
+  out_channels: 64
+  padding: 1
+  pool:
+    kernel_size: 2
+    stride: 2
+    type: MaxPool2d
+  stride: 1
+- batch_norm: true
+  dropout: 0.4
+  kernel_size: 3
+  out_channels: 128
+  padding: 1
+  pool:
+    kernel_size: 2
+    stride: 2
+    type: MaxPool2d
+  stride: 1
+data_dir: data/
+epochs: 20
+fc_batch_norm: true
+fc_dropout: 0.5
+fc_layers:
+- 64
+- 1
+image_size:
+- 512
+- 512
+in_channels: 1
+learning_rate: 0.0001
+model_name: V2_simple_3_conv_layers_
+model_output_dir: output/model/
+num_workers: 0
+output_base_dir: output/
+run_identifier: 04_05_222614_V2_simple_3_conv_layers__bs32_lr0.0001_epoch20_img_size512x512
+seed: 42
