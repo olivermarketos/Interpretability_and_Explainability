@@ -1,0 +1,91 @@
+batch_size: 32
+conv_layers:
+- batch_norm: true
+  kernel_size: 3
+  out_channels: 32
+  padding: 1
+  stride: 1
+- batch_norm: true
+  kernel_size: 3
+  out_channels: 32
+  padding: 1
+  pool:
+    kernel_size: 2
+    stride: 2
+    type: MaxPool2d
+  stride: 1
+- batch_norm: true
+  kernel_size: 3
+  out_channels: 64
+  padding: 1
+  stride: 1
+- batch_norm: true
+  kernel_size: 3
+  out_channels: 64
+  padding: 1
+  pool:
+    kernel_size: 2
+    stride: 2
+    type: MaxPool2d
+  stride: 1
+- batch_norm: true
+  kernel_size: 3
+  out_channels: 128
+  padding: 1
+  pool:
+    kernel_size: 3
+    stride: 3
+    type: MaxPool2d
+  stride: 1
+- batch_norm: true
+  kernel_size: 3
+  out_channels: 256
+  padding: 1
+  stride: 1
+- batch_norm: true
+  kernel_size: 3
+  out_channels: 128
+  padding: 1
+  pool:
+    kernel_size: 3
+    stride: 3
+    type: MaxPool2d
+  stride: 1
+- batch_norm: true
+  kernel_size: 3
+  out_channels: 1024
+  padding: 1
+  stride: 1
+- batch_norm: true
+  dropout: 0.4
+  kernel_size: 3
+  out_channels: 512
+  padding: 1
+  pool:
+    kernel_size: 2
+    stride: 2
+    type: MaxPool2d
+  stride: 1
+cooldown: 5
+data_dir: data/
+epochs: 25
+factor: 0.8
+fc_batch_norm: true
+fc_dropout: 0.5
+fc_layers:
+- 128
+- 64
+- 1
+image_size:
+- 224
+- 224
+in_channels: 1
+learning_rate: 0.0001
+model_name: 6_all_train
+model_output_dir: output/model/
+num_workers: 0
+output_base_dir: output/
+patience: 5
+run_identifier: 07_05_151708_6_all_train_bs32_lr0.0001_epoch25_img_size224x224
+seed: 42
+weight_decay: 1.0e-05

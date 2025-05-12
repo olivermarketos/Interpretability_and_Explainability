@@ -32,7 +32,7 @@ class Trainer:
         correct = 0
         total   = 0
 
-        for x, y in progress_bar:
+        for x, y, _ in progress_bar:
             x = x.to(self.device)
             y = y.to(self.device).float()        
 

@@ -4,7 +4,6 @@ output_base_dir: output/
 model_output_dir: output/model/
 
 seed: 42
-num_workers: 0
 
 # CONFIG TRAINING PARAMETERS
 batch_size: 32
@@ -15,11 +14,12 @@ weight_decay: 0.00001
 patience: 5
 factor: 0.8
 cooldown: 5
-
+optimizer: AdamW
 
 
 # CONFIG THE MODEL
-model_name: 5_smaller_img
+model_name: 6_smaller_img
+run_identifier: 07_05_110444_6_smaller_img_bs32_lr0.0001_epoch15_img_size224x224
 image_size: [224,224] # (height, width)
 in_channels: 1
 
